@@ -1,0 +1,30 @@
+{
+    "name": "demi/image",
+    "description": "Yii2 behavior for upload image to model",
+    "keywords": ["yii2", "image", "upload", "behavior", "resize"],
+    "homepage": "https://github.com/demisang/yii2-image-uploader#readme",
+    "type": "yii2-extension",
+    "license": "GNU",
+    "authors": [
+        {
+            "name": "Ivan Orlov",
+            "email": "orlov_mail@mail.ru",
+            "homepage": "http://ivan-orlov.com/",
+            "role": "Creator"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/demisang/yii2-image-uploader/issues",
+        "source": "https://github.com/demisang/yii2-image-uploader"
+    },
+    "require": {
+        "php": ">=5.4.0",
+        "yiisoft/yii2": "*",
+        "yurkinx/yii2-image": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {
+            "demi\\image\\": ""
+        }
+    }
+}
