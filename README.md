@@ -25,18 +25,21 @@ In model file add image uploader behavior:
 public function behaviors()
 {
     return [
-        'imageUploaderBehavior' => array(
+        'imageUploaderBehavior' => [
             'class' => \demi\image\ImageUploaderBehavior::className(),
-            'imageAttribute' => 'image',
-            'savePathAlias' => '@frontend/web/images/products',
-            'noImageBaseName' => 'noimage.png',
-            'imageSizes' => array(
-                '' => 1000,
-                'medium_' => 270,
-                'small_' => 70,
-                'my_custom_size' => 25,
-            ),
-        ),
+            'imageConfig' => [
+                'imageAttribute' => 'image',
+                'savePathAlias' => '@frontend/web/images/products',
+                'rootPathAlias' => '@frontend/web',
+                'noImageBaseName' => 'noimage.png',
+                'imageSizes' => [
+                    '' => 1000,
+                    'medium_' => 270,
+                    'small_' => 70,
+                    'my_custom_size' => 25,
+                ],
+            ],
+        ],
     ];
 }
 ```

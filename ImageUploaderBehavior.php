@@ -79,7 +79,7 @@ class ImageUploaderBehavior extends Behavior
 
         // Подключаем валидатор изображения
         $validatorParams = array_merge([
-            'types' => $this->_fileTypes,
+            'extensions' => $this->_fileTypes,
             'maxSize' => $this->_maxFileSize,
             'skipOnEmpty' => true,
             'tooBig' => 'Изображение слишком велико, максимальный размер: ' . floor($this->_maxFileSize / 1024 / 1024) . ' Мб',
@@ -360,7 +360,7 @@ class ImageUploaderBehavior extends Behavior
         return $width * 2;
     }
 
-    public function renderFormImageField($form = null)
+    public function renderFormImageField(\yii\web\View $view, \yii\widgets\ActiveForm $form = null)
     {
         $model = $this->owner;
         $img_hint = '';
@@ -391,10 +391,10 @@ class ImageUploaderBehavior extends Behavior
                 ]);
             $img_hint .= '</div>';
         }
-        $img_hint = 'Минимальный размер фотографии: ' . Yii::$app->params['user_min_image_width'] .
-            ' на ' . Yii::$app->params['user_min_image_height'] . ' пикселей.<br />
-	Поддерживаемые форматы: ' . Yii::$app->params['user_image_formats'] . '.
-	Максимальный размер файла: ' . ceil(Yii::$app->params['user_image_max_bytes'] / 1024 / 1024) . 'мб.' .
+        $img_hint = 'Поддерживаемые форматы: ' . $this->_fileTypes . '.
+	Максимальный размер файла: ' . ceil($this->_maxFileSize / 1024 / 1024) . 'мб.' .
             $img_hint;
+
+        echo $form->field($model, $this->_imageAttribute)->fileInput()->hint($img_hint);
     }
 }
