@@ -42,6 +42,8 @@ class ImageUploaderBehavior extends Behavior
     private $_imageRequire = false;
     /** @var array Дополнительные параметры для ImageValidator */
     private $_imageValidatorParams = [];
+    /** @var string Название субдомена backend`а, нужен для того, чтобы выводить абсолютный путь к изображению в backend`е */
+    private $_backendSubdomain = 'admin.';
     /** @var string Временное хранилище для учёта текущего, уже загруженного изображения */
     private $_oldImage = null;
     /** @var array Конфигурационный массив, который переопределяет вышеуказанные настройки */
@@ -137,10 +139,11 @@ class ImageUploaderBehavior extends Behavior
     public function deleteImage()
     {
         $owner = $this->owner;
-
         $DS = DIRECTORY_SEPARATOR;
+
+        $image = str_replace('/', $DS, $this->_oldImage);
+
         if (!empty($image)) {
-            $image = str_replace('/', $DS, $this->_oldImage);
             $dirName = Yii::getAlias($this->_savePathAlias);
             // Удаляем все ресазы изображения
             foreach ($this->_imageSizes as $prefix => $size) {
@@ -151,8 +154,6 @@ class ImageUploaderBehavior extends Behavior
 
         // Обнуляем значение
         $owner->setAttribute($this->_imageAttribute, null);
-        // Сохраняем значение в БД
-        $owner->save(false, [$this->_imageAttribute]);
     }
 
     /**
@@ -231,23 +232,30 @@ class ImageUploaderBehavior extends Behavior
      */
     public function getImageSrc($size = null)
     {
-        /* @var $owner ActiveRecord */
         $owner = $this->owner;
+
+        $prefix = Yii::$app->request->baseUrl;
+        $host = Yii::$app->request->hostInfo;
+        // Если мы сейчас находимся на субдомене admin.*, то вернём абсолютный путь к картинке на frontend
+        if (!empty($this->_backendSubdomain) && strpos($host, $this->_backendSubdomain)) {
+            $prefix = str_replace($this->_backendSubdomain, '', $host) . $prefix;
+        }
+
         $image = $owner->getAttribute($this->_imageAttribute);
         if (empty($image)) {
             if (isset($this->_imageSizes[$size])) {
-                return Yii::$app->request->baseUrl . '/images/' . static::addPrefixToFile($this->_noImageBaseName,
+                return $prefix . '/images/' . static::addPrefixToFile($this->_noImageBaseName,
                     $size);
             }
 
-            return Yii::$app->request->baseUrl . '/images/' . $this->_noImageBaseName;
+            return $prefix . '/images/' . $this->_noImageBaseName;
         }
 
         $root = Yii::getAlias($this->_rootPathAlias); // Корень сайта
         $path = Yii::getAlias($this->_savePathAlias); // Получаем путь до папки с загрузками
         $path = str_replace($root, '', $path); // Убиаем из полного пути часть webroot
         $path = str_replace('\\', '/', $path); // Заменяем "\" на "/"
-        $folder = Yii::$app->request->baseUrl . '/' . trim($path, '/') . '/';
+        $folder = $prefix . '/' . trim($path, '/') . '/';
 
         if (!empty($size)) {
             return $folder . static::addPrefixToFile($image, $size);
