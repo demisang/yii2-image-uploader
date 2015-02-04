@@ -134,9 +134,11 @@ class ImageUploaderBehavior extends Behavior
     }
 
     /**
-     * Удаление изображения
+     * Delete image file and set|save model image field to null
+     *
+     * @param bool $updateDb need to update image field in DB
      */
-    public function deleteImage()
+    public function deleteImage($updateDb = false)
     {
         $owner = $this->owner;
         $DS = DIRECTORY_SEPARATOR;
@@ -154,6 +156,9 @@ class ImageUploaderBehavior extends Behavior
 
         // Обнуляем значение
         $owner->setAttribute($this->_imageAttribute, null);
+        if ($updateDb) {
+            $owner->save(false, [$this->_imageAttribute]);
+        }
     }
 
     /**
