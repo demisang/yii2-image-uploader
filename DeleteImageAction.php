@@ -37,7 +37,7 @@ class DeleteImageAction extends Action
         $attributes = [];
         // forming search condition
         foreach ($pk as $primaryKey) {
-            $pkValue = $request->getBodyParam($primaryKey);
+            $pkValue = static::_getRequestParam($primaryKey);
             if ($pkValue === null) {
                 throw new InvalidParamException('You must specify "' . $primaryKey . '" param');
             }
@@ -75,5 +75,30 @@ class DeleteImageAction extends Action
         $url = $this->redirectUrl instanceof Closure ? call_user_func($this->redirectUrl, $model) : $this->redirectUrl;
 
         return $response->redirect($url);
+    }
+
+    /**
+     * Return param by name from $_POST or $_GET. Post priority
+     *
+     * @param string $name
+     * @param mixed|null $defaultValue
+     *
+     * @return array|mixed|null
+     */
+    private static function _getRequestParam($name, $defaultValue = null)
+    {
+        $value = $defaultValue;
+        $request = Yii::$app->request;
+
+        $get = $request->get($name, $defaultValue);
+        $post = $request->post($name, $defaultValue);
+
+        if ($post !== $defaultValue) {
+            return $post;
+        } elseif ($get !== $defaultValue) {
+            return $get;
+        }
+
+        return $value;
     }
 } 

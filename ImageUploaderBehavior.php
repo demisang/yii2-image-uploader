@@ -18,7 +18,7 @@ use yii\web\UploadedFile;
 /**
  * Поведение для работы с главным изображением материала
  *
- * @package demi\seo
+ * @package demi\image
  *
  * @property ActiveRecord $owner
  */
@@ -157,7 +157,7 @@ class ImageUploaderBehavior extends Behavior
         // Обнуляем значение
         $owner->setAttribute($this->_imageAttribute, null);
         if ($updateDb) {
-            $owner->save(false, [$this->_imageAttribute]);
+            $owner->update(false, [$this->_imageAttribute]);
         }
     }
 

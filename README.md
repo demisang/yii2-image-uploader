@@ -27,7 +27,7 @@ public function behaviors()
 {
     return [
         'imageUploaderBehavior' => [
-            'class' => \demi\image\ImageUploaderBehavior::className(),
+            'class' => 'demi\image\ImageUploaderBehavior',
             'imageConfig' => [
                 'imageAttribute' => 'image',
                 'savePathAlias' => '@frontend/web/images/products',
