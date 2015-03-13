@@ -92,6 +92,13 @@ class ImageUploaderBehavior extends Behavior
         $owner->validators->append($validator);
     }
 
+    public function getImageConfigParam($paramName)
+    {
+        $name = '_' . $paramName;
+
+        return $this->$name;
+    }
+
     public function events()
     {
         return [
@@ -156,6 +163,8 @@ class ImageUploaderBehavior extends Behavior
 
         // Обнуляем значение
         $owner->setAttribute($this->_imageAttribute, null);
+        $this->_oldImage = null;
+
         if ($updateDb) {
             $owner->update(false, [$this->_imageAttribute]);
         }
@@ -373,41 +382,13 @@ class ImageUploaderBehavior extends Behavior
         return $width * 2;
     }
 
-    public function renderFormImageField(\yii\web\View $view, \yii\widgets\ActiveForm $form = null)
+    /**
+     * Return instance of current behavior
+     *
+     * @return self $this
+     */
+    public function geImageBehavior()
     {
-        $model = $this->owner;
-        $img_hint = '';
-        $imageVal = $model->getAttribute($this->_imageAttribute);
-        if (!$model->isNewRecord && !empty($imageVal)) {
-            $wigetId = uniqid();
-            $img_hint .= '<div id="' . $wigetId . '">' . Html::img($model->imageSrc) . '<br />';
-            $img_hint .= Html::a('Удалить фотографию', '#',
-                [
-                    'onclick' => new JsExpression('
-                    function() {
-                        if (!confirm("Вы действительно хотите удалить изображение?")) {
-                            return;
-                        }
-
-                        $.ajax({
-                            type: "post",
-                            cache: false,
-                            url: ' . Url::to(['deleteImage', 'id' => $model->getPrimaryKey()]) . ',
-                            success: function() {
-                                $("#' . $wigetId . '").remove();
-                            }
-                        });
-                    };
-
-                    return false;
-                ')
-                ]);
-            $img_hint .= '</div>';
-        }
-        $img_hint = 'Поддерживаемые форматы: ' . $this->_fileTypes . '.
-	Максимальный размер файла: ' . ceil($this->_maxFileSize / 1024 / 1024) . 'мб.' .
-            $img_hint;
-
-        echo $form->field($model, $this->_imageAttribute)->fileInput()->hint($img_hint);
+        return $this;
     }
 }

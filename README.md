@@ -23,6 +23,9 @@ Configuration
 -------------
 In model file add image uploader behavior:
 ```php
+/**
+ * @inheritdoc
+ */
 public function behaviors()
 {
     return [
@@ -45,6 +48,14 @@ public function behaviors()
 }
 ```
 
+PHPdoc for model:
+```php
+/**
+ * @method getImageSrc($size = null)
+ * @property string $imageSrc
+ */
+```
+
 Usage
 -----
 In any view file:
@@ -64,10 +75,25 @@ Html::img($model->getImageSrc('small_'));
 Html::img($model->getImageSrc('my_custom_size'));
 ```
 
+_form.php
+```php
+<?php $form = ActiveForm::begin([
+    'options' => ['enctype' => 'multipart/form-data'],
+]); ?>
+
+<?= $form->field($model, 'image')->widget('demi\image\FormImageWidget', [
+        'imageSrc' => $model->getImageSrc('medium_'),
+        'deleteUrl' => ['deleteImage', 'id' => $model->getPrimaryKey()],
+]) ?>
+```
+
 Bonus: Delete Image Action
 -----
 Add this code to you controller:
 ```php
+/**
+ * @inheritdoc
+ */
 public function actions()
 {
     return [

@@ -21,7 +21,7 @@ class DeleteImageAction extends Action
     /** @var string ClassName of AR model */
     public $modelClass;
     /** @var Closure|bool Closure function to check user access to delete model image */
-    public $canDelete = false;
+    public $canDelete = true;
     /** @var Closure|array|string Closure function to get redirect url on after delete image */
     public $redirectUrl;
     /** @var Closure|null Closure function to get custom response on after delete image */
