@@ -32,7 +32,7 @@ public function behaviors()
                 'imageAttribute' => 'image',
                 'savePathAlias' => '@frontend/web/images/products',
                 'rootPathAlias' => '@frontend/web',
-                'noImageBaseName' => 'noimage.png',
+                'noImageBaseName' => 'noimage.jpg',
                 'imageSizes' => [
                     '' => 1000,
                     'medium_' => 270,
