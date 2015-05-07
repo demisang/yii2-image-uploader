@@ -248,11 +248,14 @@ class ImageUploaderBehavior extends Behavior
     {
         $owner = $this->owner;
 
-        $prefix = Yii::$app->request->baseUrl;
-        $host = Yii::$app->request->hostInfo;
-        // Если мы сейчас находимся на субдомене admin.*, то вернём абсолютный путь к картинке на frontend
-        if (!empty($this->_backendSubdomain) && strpos($host, $this->_backendSubdomain)) {
-            $prefix = str_replace($this->_backendSubdomain, '', $host) . $prefix;
+        $prefix = '';
+        if (Yii::$app->request instanceof \yii\web\Request) {
+            $prefix = Yii::$app->request->baseUrl;
+            $host = Yii::$app->request->hostInfo;
+            // Если мы сейчас находимся на субдомене admin.*, то вернём абсолютный путь к картинке на frontend
+            if (!empty($this->_backendSubdomain) && strpos($host, $this->_backendSubdomain)) {
+                $prefix = str_replace($this->_backendSubdomain, '', $host) . $prefix;
+            }
         }
 
         $image = $owner->getAttribute($this->_imageAttribute);
