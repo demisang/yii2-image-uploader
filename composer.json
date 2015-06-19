@@ -20,7 +20,8 @@
     "require": {
         "php": ">=5.4.0",
         "yiisoft/yii2": "*",
-        "yurkinx/yii2-image": "dev-master"
+        "yurkinx/yii2-image": "dev-master",
+        "demi/cropper": "dev-master"
     },
     "autoload": {
         "psr-4": {

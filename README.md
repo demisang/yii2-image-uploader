@@ -10,7 +10,8 @@ Add to composer.json in your project
 {
 	"require":
 	{
-  		"demi/image": "dev-master"
+        "yurkinx/yii2-image": "dev-master",
+        "demi/image": "dev-master"
 	}
 }
 ```

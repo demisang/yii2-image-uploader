@@ -19,6 +19,7 @@ class FormImageWidget extends InputWidget
 {
     public $imageSrc;
     public $deleteUrl;
+    public $cropUrl;
 
     public function run()
     {
