@@ -112,12 +112,13 @@ _form.php
 ]); ?>
 
 <?= $form->field($model, 'image')->widget('demi\image\FormImageWidget', [
-        'imageSrc' => $model->getImageSrc('medium_'),
-        'deleteUrl' => ['deleteImage', 'id' => $model->getPrimaryKey()],
+    'imageSrc' => $model->getImageSrc('medium_'),
+    'deleteUrl' => ['deleteImage', 'id' => $model->getPrimaryKey()],
+    'cropUrl' => ['cropImage', 'id' => $model->getPrimaryKey()],
 ]) ?>
 ```
 
-Bonus: Delete Image Action
+Bonus: DELETE and CROP image actions!
 -----
 Add this code to you controller:
 ```php
@@ -152,7 +153,15 @@ public function actions()
                     }
                 },
         ],
+        'cropImage' => [
+            'class' => 'demi\image\CropImageAction',
+            'modelClass' => Post::className(),
+            'redirectUrl' => function ($model) {
+                /* @var $model Post */
+                // triggered on !Yii::$app->request->isAjax, else will be returned JSON: {status: "success"}
+                return ['update', 'id' => $model->id];
+            },
+        ],
     ];
 }
 ```
-In you view file:
