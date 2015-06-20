@@ -191,12 +191,37 @@ class ImageUploaderBehavior extends Behavior
         $rnddir = static::getRandomDir($imageFolder);
         $fullImagePath = $imageFolder . $DS . $rnddir . $DS . $name; // Полный путь к изображению
         if ($image->saveAs($fullImagePath)) {
+            // Save original file
+            $originalImage = $imageFolder . $DS . $rnddir . $DS . $namePart . '_original.' . $image->extension;
+            @copy($fullImagePath, $originalImage);
+
             // Если изображение успешно сохранено - делаем ресайзные копии
             $sizes = $this->_imageSizes;
             $imageInfo = getimagesize($fullImagePath);
+            $img_width = $imageInfo[0];
+            $img_height = $imageInfo[1];
+
+            // Crop image if set aspectRatio value
+            if ($this->_aspectRatio) {
+                $isVertical = $img_width < $img_height;
+
+                if (!$isVertical) {
+                    $width = $img_height * $this->_aspectRatio;
+                    $height = $width / $this->_aspectRatio;
+                } else {
+                    $height = $img_width / $this->_aspectRatio;
+                    $width = $height * $this->_aspectRatio;
+                }
+                $imageComponent = static::getImageComponent();
+                $image_c = $imageComponent->load($fullImagePath);
+                /* @var $image_c Image_GD|Image_Imagick */
+                $image_c->crop($width, $height);
+                $img_width = $width;
+                $image_c->save($fullImagePath);
+            }
 
             // Если изображение НЕ шире чем положено - удаляем главный размер из списка для ресайза
-            if ($imageInfo[0] <= $sizes['']) {
+            if ($img_width <= $sizes['']) {
                 unset($sizes['']);
             }
 
@@ -204,10 +229,6 @@ class ImageUploaderBehavior extends Behavior
             $rez = static::resizeAndSave($imageFolder . $DS . $rnddir, $name, $sizes);
             // Если ресайз прошёл успешно
             if ($rez === true) {
-                // Сохраняем оригинал
-                $originalImage = $imageFolder . $DS . $rnddir . $DS . $namePart . '_original.' . $image->extension;
-                @copy($fullImagePath, $originalImage);
-
                 return $rnddir . '/' . $name;
             } else {
                 // Если ресайз пошёл неправильно - удалим файлы
@@ -232,7 +253,7 @@ class ImageUploaderBehavior extends Behavior
      *
      * @return string путь с префиксом
      */
-    protected static function addPrefixToFile($path, $prefix = null)
+    public static function addPrefixToFile($path, $prefix = null)
     {
         if ($prefix === null || $prefix == '') {
             return $path;
@@ -255,7 +276,7 @@ class ImageUploaderBehavior extends Behavior
      *
      * @return string путь с постфиксом
      */
-    protected static function addPostfixToFile($path, $postfix = null)
+    public static function addPostfixToFile($path, $postfix = null)
     {
         if ($postfix === null || $postfix == '') {
             return $path;
@@ -323,7 +344,7 @@ class ImageUploaderBehavior extends Behavior
      *
      * @return string Путь к новой директории
      */
-    protected static function getRandomDir($path)
+    public static function getRandomDir($path)
     {
         $DS = DIRECTORY_SEPARATOR;
         $max_scatter = 9; // Диапазон имён директорий 0..$max_scatter
@@ -366,7 +387,7 @@ class ImageUploaderBehavior extends Behavior
      * @return boolean В случае успеха TRUE, иначе FALSE
      * @todo Обрезка максимальной высоты вместо ошибки
      */
-    protected static function resizeAndSave($dir, $fileName, $resizeWidth)
+    public static function resizeAndSave($dir, $fileName, $resizeWidth)
     {
         $DS = DIRECTORY_SEPARATOR;
 
@@ -403,7 +424,7 @@ class ImageUploaderBehavior extends Behavior
      *
      * @return \yii\image\ImageDriver
      */
-    protected static function getImageComponent()
+    public static function getImageComponent()
     {
         // Получаем компонент для работы с изображениями
         if (is_object(static::$_imageComponent)) {
@@ -426,7 +447,7 @@ class ImageUploaderBehavior extends Behavior
      *
      * @return integer
      */
-    private static function getMaxHeight($width)
+    public static function getMaxHeight($width)
     {
         return $width * 2;
     }
@@ -461,10 +482,11 @@ class ImageUploaderBehavior extends Behavior
      * @param int $y
      * @param int $width
      * @param int $height
+     * @param int $rotate
      *
      * @return bool
      */
-    public function cropImage($x, $y, $width, $height)
+    public function cropImage($x, $y, $width, $height, $rotate)
     {
         $DS = DIRECTORY_SEPARATOR;
         $savePath = Yii::getAlias($this->_savePathAlias);
@@ -476,6 +498,7 @@ class ImageUploaderBehavior extends Behavior
         $image = $imageComponent->load($this->getOriginalImagePath());
 
         $image->crop($width, $height, $x, $y);
+        $image->rotate($rotate);
 
         $image->save($fullImagePath);
 

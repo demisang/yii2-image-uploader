@@ -2,11 +2,11 @@
 
 namespace demi\image;
 
-use demi\image\ImageUploaderBehavior;
 use Yii;
-use yii\db\ActiveRecord;
-use yii\helpers\Html;
 use yii\helpers\Url;
+use yii\helpers\Html;
+use yii\db\ActiveRecord;
+use demi\cropper\Cropper;
 use yii\web\JsExpression;
 use yii\widgets\InputWidget;
 
@@ -28,17 +28,20 @@ class FormImageWidget extends InputWidget
         /* @var $behavior ImageUploaderBehavior */
         $behavior = $model->geImageBehavior();
 
-        $wigetId = uniqid();
+        $wigetId = $this->id;
         $img_hint = '<div class="hint-block">';
         $img_hint .= 'Поддерживаемые форматы: ' . $behavior->getImageConfigParam('fileTypes') . '.
 	Максимальный размер файла: ' . ceil($behavior->getImageConfigParam('maxFileSize') / 1024 / 1024) . 'мб.';
-        $img_hint .= '</div>';
+        $img_hint .= '</div><!-- /.hint-block -->';
 
         $imageVal = $model->getAttribute($behavior->getImageConfigParam('imageAttribute'));
         if (!$model->isNewRecord && !empty($imageVal)) {
-            $img_hint .= '<div id="' . $wigetId . '">';
-            $img_hint .=  Html::img($this->imageSrc) . '<br />';
-            $img_hint .= Html::a('Удалить фотографию', '#',
+            $img_hint .= '<div id="' . $wigetId . '" class="row">';
+            $img_hint .= '<div class="col-md-12">';
+            $img_hint .= Html::img($this->imageSrc, ['class' => 'pull-left uploaded-image-preview']);
+            // $img_hint .= '<div class="pull-left" style="margin-left: 5px;">';
+            $img_hint .= '<div class="btn-group-vertical pull-left"  style="margin-left: 5px;" role="group">';
+            $img_hint .= Html::a('Delete <i class="glyphicon glyphicon-trash"></i>', '#',
                 [
                     'onclick' => new JsExpression('
                         if (!confirm("Вы действительно хотите удалить изображение?")) {
@@ -55,14 +58,46 @@ class FormImageWidget extends InputWidget
                         });
 
                         return false;
-                ')
+                    '),
+                    'class' => 'btn btn-danger',
                 ]);
-            $img_hint .= '</div>';
+
+            if (!empty($this->cropUrl)) {
+                Yii::$app->response->headers->add('Access-Control-Allow-Origin', '*');
+                $pluginOptions = [];
+                $validatorParams = $behavior->getImageConfigParam('imageValidatorParams');
+                if (isset($validatorParams['minWidth'])) {
+                    $pluginOptions['minCropBoxWidth'] = $validatorParams['minWidth'];
+                }
+                if (isset($validatorParams['minHeight'])) {
+                    $pluginOptions['minCropBoxHeight'] = $validatorParams['minHeight'];
+                }
+
+                $img_hint .= Cropper::widget([
+                    'modal' => true,
+                    'cropUrl' => $this->cropUrl,
+                    'image' => ImageUploaderBehavior::addPostfixToFile($model->getImageSrc(), '_original'),
+                    'aspectRatio' => $behavior->getImageConfigParam('aspectRatio'),
+                    'pluginOptions' => $pluginOptions,
+                    'ajaxOptions' => [
+                        'success' => new JsExpression(<<<JS
+function(data) {
+    // Refresh image src value to show new cropped image
+    var img = $("#$wigetId img.uploaded-image-preview");
+    img.attr("src", img.attr("src").replace(/\?.*/, '') + "?" + new Date().getTime());
+}
+JS
+                            ),
+                    ],
+                ]);
+            }
+            $img_hint .= '</div><!-- /.btn-group -->';
+            $img_hint .= '</div><!-- /.col-md-12 -->';
+            $img_hint .= '</div><!-- /.row -->';
         }
 
-
         $imgAttr = $behavior->getImageConfigParam('imageAttribute');
-        echo Html::activeFileInput($model, $imgAttr);
-        echo $img_hint;
+
+        return Html::activeFileInput($model, $imgAttr) . $img_hint;
     }
 } 
