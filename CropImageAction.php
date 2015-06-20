@@ -21,13 +21,15 @@ class CropImageAction extends Action
     /** @var string ClassName of AR model */
     public $modelClass;
     /** @var string Name for x-offset request param */
-    public $leftParamName = 'left';
+    public $leftParamName = 'x';
     /** @var string Name for y-offset request param */
-    public $topParamName = 'top';
+    public $topParamName = 'y';
     /** @var string Name for width request param */
     public $widthParamName = 'width';
     /** @var string Name for height request param */
     public $heightParamName = 'height';
+    /** @var string Name for rotate request param */
+    public $rotateParamName = 'rotate';
     /** @var Closure|bool Closure function to check user access to delete model image */
     public $canCrop = true;
     /** @var Closure|array|string Closure function to get redirect url on after delete image */
@@ -56,6 +58,7 @@ class CropImageAction extends Action
         $y = static::_getRequestParam($this->topParamName, 0);
         $width = static::_getRequestParam($this->widthParamName);
         $height = static::_getRequestParam($this->heightParamName);
+        $rotate = static::_getRequestParam($this->rotateParamName);
         if ($width === null || $height === null) {
             throw new InvalidParamException("You must specify '{$this->widthParamName}' and '{$this->heightParamName}' params");
         }
@@ -72,7 +75,7 @@ class CropImageAction extends Action
         }
 
         // Image deletion
-        $model->cropImage($x, $y, $width, $height);
+        $model->cropImage($x, $y, $width, $height, $rotate);
 
         // if exist custom response function
         if (is_callable($this->afterCrop)) {
