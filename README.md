@@ -5,13 +5,18 @@ Yii2 behavior for upload image to model
 
 Installation
 ------------
+Run
+```code
+php composer.phar require "demi/image" "~1.0"
+```
+or
+
+
 Add to composer.json in your project
 ```json
 {
-	"require":
-	{
-        "yurkinx/yii2-image": "dev-master",
-        "demi/image": "dev-master"
+	"require": {
+  		"demi/image": "~1.0"
 	}
 }
 ```
