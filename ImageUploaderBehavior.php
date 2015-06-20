@@ -191,10 +191,20 @@ class ImageUploaderBehavior extends Behavior
         $rnddir = static::getRandomDir($imageFolder);
         $fullImagePath = $imageFolder . $DS . $rnddir . $DS . $name; // Полный путь к изображению
         if ($image->saveAs($fullImagePath)) {
+            // Reduce image if image is very large
+            $imageComponent = static::getImageComponent();
+            $imageInfo = getimagesize($fullImagePath);
+            $img_width = $imageInfo[0];
+            if ($img_width > 1024) {
+                /* @var $image_o Image_GD|Image_Imagick */
+                $image_o = $imageComponent->load($fullImagePath);
+                $image_o->resize(1024, static::getMaxHeight(1024));
+                $image_o->save($fullImagePath);
+            }
+
             // Save original file
             $originalImage = $imageFolder . $DS . $rnddir . $DS . $namePart . '_original.' . $image->extension;
             @copy($fullImagePath, $originalImage);
-
             // Если изображение успешно сохранено - делаем ресайзные копии
             $sizes = $this->_imageSizes;
             $imageInfo = getimagesize($fullImagePath);
@@ -212,9 +222,8 @@ class ImageUploaderBehavior extends Behavior
                     $height = $img_width / $this->_aspectRatio;
                     $width = $height * $this->_aspectRatio;
                 }
-                $imageComponent = static::getImageComponent();
-                $image_c = $imageComponent->load($fullImagePath);
                 /* @var $image_c Image_GD|Image_Imagick */
+                $image_c = $imageComponent->load($fullImagePath);
                 $image_c->crop($width, $height);
                 $img_width = $width;
                 $image_c->save($fullImagePath);
