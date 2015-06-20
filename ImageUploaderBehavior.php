@@ -317,8 +317,7 @@ class ImageUploaderBehavior extends Behavior
         $image = $owner->{$this->_imageAttribute};
         if (empty($image)) {
             if (isset($this->_imageSizes[$size])) {
-                return $prefix . '/images/' . static::addPrefixToFile($this->_noImageBaseName,
-                    $size);
+                return $prefix . '/images/' . static::addPrefixToFile($this->_noImageBaseName, $size);
             }
 
             return $prefix . '/images/' . $this->_noImageBaseName;

@@ -33,16 +33,40 @@ public function behaviors()
         'imageUploaderBehavior' => [
             'class' => 'demi\image\ImageUploaderBehavior',
             'imageConfig' => [
+                // Name of image attribute where the image will be stored
                 'imageAttribute' => 'image',
+                // Yii-alias to dir where will be stored subdirectories with images
                 'savePathAlias' => '@frontend/web/images/products',
+                // Yii-alias to root project dir, relative path to the image will exclude this part of the full path
                 'rootPathAlias' => '@frontend/web',
+                // Name of default image. Image placed to: webrooot/images/{noImageBaseName}
+                // You must create all noimage files: noimage.jpg, medium_noimage.jpg, small_noimage.jpg, etc.
                 'noImageBaseName' => 'noimage.jpg',
+                // List of thumbnails sizes.
+                // Format: [prefix=>max_width]
+                // Thumbnails height calculated proportionally automatically
+                // Prefix '' is special, it determines the max width of the main image
                 'imageSizes' => [
                     '' => 1000,
                     'medium_' => 270,
                     'small_' => 70,
                     'my_custom_size' => 25,
                 ],
+                // This params will be passed to \yii\validators\ImageValidator
+                'imageValidatorParams' => [
+                    'minWidth' => 400,
+                    'minHeight' => 300,
+                ],
+                // Cropper config
+                'aspectRatio' => 4 / 3, // or 16/9(wide) or 1/1(square) or any other ratio. Null - free ratio
+                // default config
+                'imageRequire' => false,
+                'fileTypes' => 'jpg,jpeg,gif,png',
+                'maxFileSize' => 10485760, // 10mb
+                // If backend is located on a subdomain 'admin.', and images are uploaded to a directory
+                // located in the frontend, you can set this param and then getImageSrc() will be return
+                // path to image without subdomain part even in backend part
+                'backendSubdomain' => 'admin.',
             ],
         ],
     ];
