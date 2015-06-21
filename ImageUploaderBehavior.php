@@ -94,11 +94,31 @@ class ImageUploaderBehavior extends Behavior
         $owner->validators->append($validator);
     }
 
+    /**
+     * Get image config param value
+     *
+     * @param string $paramName
+     *
+     * @return mixed
+     */
     public function getImageConfigParam($paramName)
     {
         $name = '_' . $paramName;
 
         return $this->$name;
+    }
+
+    /**
+     * Set new config param value
+     *
+     * @param string $paramName
+     * @param mixed $value
+     */
+    public function setImageConfigParam($paramName, $value)
+    {
+        $name = '_' . $paramName;
+
+        $this->$name = $value;
     }
 
     public function events()
