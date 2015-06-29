@@ -177,7 +177,7 @@ class ImageUploaderBehavior extends Behavior
         if (!empty($image)) {
             $dirName = Yii::getAlias($this->_savePathAlias);
             // Удаляем все ресазы изображения
-            foreach ($this->_imageSizes as $prefix => $size) {
+            foreach ($this->getImageSizes() as $prefix => $size) {
                 $file_name = $dirName . $DS . static::addPrefixToFile($image, $prefix);
                 @unlink($file_name);
             }
@@ -192,6 +192,21 @@ class ImageUploaderBehavior extends Behavior
         if ($updateDb) {
             $owner->update(false, [$this->_imageAttribute]);
         }
+
+    }
+
+    /**
+     * Get image sizes
+     *
+     * @return array
+     */
+    protected function getImageSizes()
+    {
+        if (is_callable($this->_imageSizes)) {
+            return call_user_func($this->_imageSizes, $this->owner);
+        } else {
+            return $this->_imageSizes;
+        }
     }
 
     /**
@@ -204,6 +219,8 @@ class ImageUploaderBehavior extends Behavior
     protected function uploadImage(UploadedFile $image)
     {
         $DS = DIRECTORY_SEPARATOR;
+        // Max width for uploaded original image
+        $maxWidth = 1500;
         $namePart = uniqid();
         $name = $namePart . '.' . $image->extension; // Имя будущего файла
         $imageFolder = Yii::getAlias($this->_savePathAlias); // Куда загружать изображение
@@ -215,10 +232,10 @@ class ImageUploaderBehavior extends Behavior
             $imageComponent = static::getImageComponent();
             $imageInfo = getimagesize($fullImagePath);
             $img_width = $imageInfo[0];
-            if ($img_width > 1024) {
+            if ($img_width > $maxWidth) {
                 /* @var $image_o Image_GD|Image_Imagick */
                 $image_o = $imageComponent->load($fullImagePath);
-                $image_o->resize(1024, static::getMaxHeight(1024));
+                $image_o->resize($maxWidth, static::getMaxHeight($maxWidth));
                 $image_o->save($fullImagePath);
             }
 
@@ -226,7 +243,7 @@ class ImageUploaderBehavior extends Behavior
             $originalImage = $imageFolder . $DS . $rnddir . $DS . $namePart . '_original.' . $image->extension;
             @copy($fullImagePath, $originalImage);
             // Если изображение успешно сохранено - делаем ресайзные копии
-            $sizes = $this->_imageSizes;
+            $sizes = $this->getImageSizes();
             $imageInfo = getimagesize($fullImagePath);
             $img_width = $imageInfo[0];
             $img_height = $imageInfo[1];
@@ -261,7 +278,7 @@ class ImageUploaderBehavior extends Behavior
                 return $rnddir . '/' . $name;
             } else {
                 // Если ресайз пошёл неправильно - удалим файлы
-                foreach ($this->_imageSizes as $size) {
+                foreach ($this->getImageSizes() as $size) {
                     $file_name = $imageFolder . $DS . $rnddir . $DS . static::addPrefixToFile($name, $size);
                     @unlink($file_name);
                 }
@@ -345,7 +362,7 @@ class ImageUploaderBehavior extends Behavior
 
         $image = $owner->{$this->_imageAttribute};
         if (empty($image)) {
-            if (isset($this->_imageSizes[$size])) {
+            if (isset($this->getImageSizes()[$size])) {
                 return $prefix . '/images/' . static::addPrefixToFile($this->_noImageBaseName, $size);
             }
 
@@ -530,7 +547,7 @@ class ImageUploaderBehavior extends Behavior
 
         $image->save($fullImagePath);
 
-        $sizes = $this->_imageSizes;
+        $sizes = $this->getImageSizes();
         unset($sizes['']);
 
         $pathParts = explode('/', str_replace('\\', '/', $imageSrc));
