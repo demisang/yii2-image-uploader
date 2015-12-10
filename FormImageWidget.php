@@ -20,6 +20,7 @@ class FormImageWidget extends InputWidget
     public $imageSrc;
     public $deleteUrl;
     public $cropUrl;
+    public $cropPluginOptions = [];
 
     public function run()
     {
@@ -64,7 +65,7 @@ class FormImageWidget extends InputWidget
 
             if (!empty($this->cropUrl)) {
                 Yii::$app->response->headers->add('Access-Control-Allow-Origin', '*');
-                $pluginOptions = [];
+                $pluginOptions = $this->cropPluginOptions;
                 $validatorParams = $behavior->getImageConfigParam('imageValidatorParams');
                 if (isset($validatorParams['minWidth'])) {
                     $pluginOptions['minCropBoxWidth'] = $validatorParams['minWidth'];

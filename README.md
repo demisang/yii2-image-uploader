@@ -64,6 +64,8 @@ public function behaviors()
                 ],
                 // Cropper config
                 'aspectRatio' => 4 / 3, // or 16/9(wide) or 1/1(square) or any other ratio. Null - free ratio
+                // cropper options https://github.com/fengyuanchen/cropper/blob/master/README.md#options
+                'cropPluginOptions' => [],
                 // default config
                 'imageRequire' => false,
                 'fileTypes' => 'jpg,jpeg,gif,png',
