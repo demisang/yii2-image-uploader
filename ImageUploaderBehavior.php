@@ -86,7 +86,7 @@ class ImageUploaderBehavior extends Behavior
             'extensions' => $this->_fileTypes,
             'maxSize' => $this->_maxFileSize,
             'skipOnEmpty' => true,
-            'tooBig' => 'Изображение слишком велико, максимальный размер: ' . floor($this->_maxFileSize / 1024 / 1024) . ' Мб',
+            'tooBig' => Yii::t('image-upload', 'The image is too large, the maximum size: ') . floor($this->_maxFileSize / 1024 / 1024) . Yii::t('image-upload', 'MB'),
         ], $this->_imageValidatorParams);
 
         $validator = Validator::createValidator(ImageValidator::className(), $owner, $this->_imageAttribute,

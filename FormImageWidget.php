@@ -31,8 +31,8 @@ class FormImageWidget extends InputWidget
 
         $wigetId = $this->id;
         $img_hint = '<div class="hint-block">';
-        $img_hint .= 'Поддерживаемые форматы: ' . $behavior->getImageConfigParam('fileTypes') . '.
-	Максимальный размер файла: ' . ceil($behavior->getImageConfigParam('maxFileSize') / 1024 / 1024) . 'мб.';
+        $img_hint .= Yii::t('image-upload', 'Supported formats:') . ' ' . $behavior->getImageConfigParam('fileTypes') . '<br />';
+        $img_hint .= Yii::t('image-upload', 'Maximum file size:') . ' ' . ceil($behavior->getImageConfigParam('maxFileSize') / 1024 / 1024) . Yii::t('image-upload', 'MB');
         $img_hint .= '</div><!-- /.hint-block -->';
 
         $imageVal = $model->getAttribute($behavior->getImageConfigParam('imageAttribute'));
@@ -45,7 +45,7 @@ class FormImageWidget extends InputWidget
             $img_hint .= Html::a('Delete <i class="glyphicon glyphicon-trash"></i>', '#',
                 [
                     'onclick' => new JsExpression('
-                        if (!confirm("Вы действительно хотите удалить изображение?")) {
+                        if (!confirm(" ' . Yii::t('image-upload', 'Are you sure you want to delete the image?') . '")) {
                             return false;
                         }
 
