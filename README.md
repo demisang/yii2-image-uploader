@@ -148,7 +148,7 @@ public function actions()
                     // You can customize response by this function, e.g. change response:
                     if (Yii::$app->request->isAjax) {
                         Yii::$app->response->getHeaders()->set('Vary', 'Accept');
-                        Yii::$app->response = Response::FORMAT_JSON;
+                        Yii::$app->response->format = yii\web\Response::FORMAT_JSON;
 
                         return ['status' => 'success', 'message' => 'Image deleted'];
                     } else {
