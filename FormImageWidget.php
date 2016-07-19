@@ -22,6 +22,23 @@ class FormImageWidget extends InputWidget
     public $cropUrl;
     public $cropPluginOptions = [];
 
+    public function init()
+    {
+        parent::init();
+        $this->registerTranslations();
+    }
+
+    public function registerTranslations()
+    {
+        $i18n = Yii::$app->i18n;
+        if (!isset($i18n->translations['image-upload'])) {
+            $i18n->translations['image-upload'] = [
+                'class' => 'yii\i18n\PhpMessageSource',
+                'sourceLanguage' => 'en-US',
+            ];
+        }
+    }
+
     public function run()
     {
         /* @var $model ActiveRecord|ImageUploaderBehavior */
@@ -31,8 +48,10 @@ class FormImageWidget extends InputWidget
 
         $wigetId = $this->id;
         $img_hint = '<div class="hint-block">';
-        $img_hint .= Yii::t('image-upload', 'Supported formats:') . ' ' . $behavior->getImageConfigParam('fileTypes') . '<br />';
-        $img_hint .= Yii::t('image-upload', 'Maximum file size:') . ' ' . ceil($behavior->getImageConfigParam('maxFileSize') / 1024 / 1024) . Yii::t('image-upload', 'MB');
+        $img_hint .= Yii::t('image-upload', 'Supported formats:') . ' ' .
+            $behavior->getImageConfigParam('fileTypes') . '<br />';
+        $img_hint .= Yii::t('image-upload', 'Maximum file size:') . ' ' .
+            ceil($behavior->getImageConfigParam('maxFileSize') / 1024 / 1024) . Yii::t('image-upload', 'MB');
         $img_hint .= '</div><!-- /.hint-block -->';
 
         $imageVal = $model->getAttribute($behavior->getImageConfigParam('imageAttribute'));
@@ -88,7 +107,7 @@ function(data) {
     img.attr("src", img.attr("src").replace(/\?.*/, '') + "?" + new Date().getTime());
 }
 JS
-                            ),
+                        ),
                     ],
                 ]);
             }

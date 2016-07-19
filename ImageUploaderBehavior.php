@@ -53,6 +53,19 @@ class ImageUploaderBehavior extends Behavior
     /** @var array Компонент для работы с изображениями (например resize изображений) */
     protected static $_imageComponent;
 
+    public function init()
+    {
+        parent::init();
+
+        $i18n = Yii::$app->i18n;
+        if (!isset($i18n->translations['image-upload'])) {
+            $i18n->translations['image-upload'] = [
+                'class' => 'yii\i18n\PhpMessageSource',
+                'sourceLanguage' => 'en-US',
+            ];
+        }
+    }
+
     /**
      * @param ActiveRecord $owner
      */
