@@ -16,7 +16,7 @@ use yii\web\JsExpression;
 use yii\web\UploadedFile;
 
 /**
- * Поведение для работы с главным изображением материала
+ * Model image behavior
  *
  * @package demi\image
  *
@@ -24,47 +24,97 @@ use yii\web\UploadedFile;
  */
 class ImageUploaderBehavior extends Behavior
 {
-    /** @var string название атрибута, хранящего в себе имя изображения или путь к изображению */
+    /**
+     * Name of image attribute where the image will be stored
+     *
+     * @var string
+     */
     protected $_imageAttribute = 'image';
-    /** @var string альяс директории, куда будем сохранять изображения */
+    /**
+     * Yii-alias to dir where will be stored subdirectories with images
+     *
+     * @var string
+     */
     protected $_savePathAlias = '@frontend/web/images';
-    /** @var string альяс корневой директории сайта (где index.php находится) */
+    /**
+     * Yii-alias to root project dir, relative path to the image will exclude this part of the full path
+     *
+     * @var string
+     */
     protected $_rootPathAlias = '@frontend/web';
-    /** @var string типы файлов, которые можно загружать (нужно для валидации) */
+    /**
+     * Allowed filetypes
+     *
+     * @var string
+     */
     protected $_fileTypes = 'jpg,jpeg,gif,png';
-    /** @var string Максимальный размер загружаемого изображения (байт) */
+    /**
+     * Max image size (bytes)
+     *
+     * @var integer
+     */
     protected $_maxFileSize = 10485760; // 10mb
-    /** @var array Размеры изображений, которые необходимо создать после загрузки основного */
+    /**
+     * List of thumbnails sizes.
+     * Format: [prefix=>max_width]
+     * Thumbnails height calculated proportionally automatically
+     * Prefix '' is special, it determines the max width of the main image
+     *
+     * @var array
+     */
     protected $_imageSizes = [];
-    /** @var string Имя файла, который будет отображён при условии отсутствия изображения */
+    /**
+     * Name of default image. Image placed to: webrooot/images/{noImageBaseName}
+     * You must create all noimage files: noimage.jpg, medium_noimage.jpg, small_noimage.jpg, etc.
+     *
+     * @var string
+     */
     protected $_noImageBaseName = 'noimage.png';
-    /** @var boolean Обязательно ли загружать изображение */
+    /**
+     * Is image field required
+     *
+     * @var boolean
+     */
     protected $_imageRequire = false;
-    /** @var array Дополнительные параметры для ImageValidator */
+    /**
+     * This params will be passed to \yii\validators\ImageValidator
+     *
+     * @var array
+     */
     protected $_imageValidatorParams = [];
-    /** @var string Название субдомена backend`а, нужен для того, чтобы выводить абсолютный путь к изображению в backend`е */
+    /**
+     * If backend is located on a subdomain 'admin.', and images are uploaded to a directory
+     * located in the frontend, you can set this param and then getImageSrc() will be return
+     * path to image without subdomain part even in backend part
+     *
+     * @var string
+     */
     protected $_backendSubdomain = 'admin.';
-    /** @var string Временное хранилище для учёта текущего, уже загруженного изображения */
+    /**
+     * Tmp field stored already uploaded image
+     *
+     * @var string
+     */
     protected $_oldImage = null;
-    /** @var float|null Соотношение сторон для обрезки изображения, если NULL - свободная область */
+    /**
+     * Cropper config.
+     * 4/3 or 16/9(wide) or 1/1(square) or any other ratio. Null - free ratio
+     *
+     * @var float|null
+     */
     protected $_aspectRatio = null;
-    /** @var array Конфигурационный массив, который переопределяет вышеуказанные настройки */
+    /**
+     * Custom config array
+     *
+     * @var array
+     */
     public $imageConfig = [];
-    /** @var array Компонент для работы с изображениями (например resize изображений) */
+    /**
+     * Inner: image component (eg.: yii\image\ImageDriver)
+     *
+     * @var object
+     */
     protected static $_imageComponent;
-
-    public function init()
-    {
-        parent::init();
-
-        $i18n = Yii::$app->i18n;
-        if (!isset($i18n->translations['image-upload'])) {
-            $i18n->translations['image-upload'] = [
-                'class' => 'yii\i18n\PhpMessageSource',
-                'sourceLanguage' => 'en-US',
-            ];
-        }
-    }
 
     /**
      * @param ActiveRecord $owner
@@ -73,33 +123,32 @@ class ImageUploaderBehavior extends Behavior
     {
         parent::attach($owner);
 
-        // Применяем конфигурационные опции
+        // Apply custom config
         foreach ($this->imageConfig as $key => $value) {
             $var = '_' . $key;
             $this->$var = $value;
         }
 
-        // Вычисляем корень сайта
+        // Get webroot path
         if (empty($this->_rootPathAlias)) {
             $savePathParts = explode('/', $this->_savePathAlias);
-            // Удаляем последнюю часть
+            // Remove last part
             unset($savePathParts[count($savePathParts - 1)]);
-            // Объединяем все части обратно
+            // Join parts
             $this->_rootPathAlias = implode('/', $savePathParts);
         }
 
-        // Добавляем валидатор require
+        // Attach "required" validator if needed
         if ($this->_imageRequire) {
             $owner->validators->append(Validator::createValidator(RequiredValidator::className(), $owner,
                 $this->_imageAttribute));
         }
 
-        // Подключаем валидатор изображения
+        // Attach "image" validator
         $validatorParams = array_merge([
             'extensions' => $this->_fileTypes,
             'maxSize' => $this->_maxFileSize,
             'skipOnEmpty' => true,
-            'tooBig' => Yii::t('image-upload', 'The image is too large, the maximum size: ') . floor($this->_maxFileSize / 1024 / 1024) . Yii::t('image-upload', 'MB'),
         ], $this->_imageValidatorParams);
 
         $validator = Validator::createValidator(ImageValidator::className(), $owner, $this->_imageAttribute,
@@ -153,17 +202,17 @@ class ImageUploaderBehavior extends Behavior
             UploadedFile::getInstance($owner, $this->_imageAttribute);
 
         if ($image instanceof UploadedFile) {
-            // Если было передано изоборажение - загружаем его, старое удаляем
+            // If new image uploaded - process it, remove old
             $new_image = static::uploadImage($image);
             if (!empty($new_image)) {
                 $this->deleteImage();
                 $owner->{$this->_imageAttribute} = $new_image;
             } else {
-                // Если новое изображение оказалось кривое
+                // If errors - revert old image
                 $owner->{$this->_imageAttribute} = $this->_oldImage;
             }
         } else {
-            // Если нового изображения не было передано - вернём старое на место
+            // Save model without image uploading - return old image to the field value
             $owner->{$this->_imageAttribute} = $this->_oldImage;
         }
     }
@@ -171,7 +220,7 @@ class ImageUploaderBehavior extends Behavior
     public function afterFind()
     {
         $owner = $this->owner;
-        // Запомним текущее изображение, дабы не переписать его пустым значением
+        // Remember old image value
         $this->_oldImage = $owner->{$this->_imageAttribute};
     }
 
@@ -189,7 +238,7 @@ class ImageUploaderBehavior extends Behavior
 
         if (!empty($image)) {
             $dirName = Yii::getAlias($this->_savePathAlias);
-            // Удаляем все ресазы изображения
+            // Remove all resized images
             foreach ($this->getImageSizes() as $prefix => $size) {
                 $file_name = $dirName . $DS . static::addPrefixToFile($image, $prefix);
                 @unlink($file_name);
@@ -198,14 +247,13 @@ class ImageUploaderBehavior extends Behavior
             @unlink($this->getOriginalImagePath());
         }
 
-        // Обнуляем значение
+        // Clear field value
         $owner->{$this->_imageAttribute} = null;
         $this->_oldImage = null;
 
         if ($updateDb) {
             $owner->update(false, [$this->_imageAttribute]);
         }
-
     }
 
     /**
@@ -223,11 +271,11 @@ class ImageUploaderBehavior extends Behavior
     }
 
     /**
-     * Загружает переданное изображение в нужную директорию
+     * Save uploaded image
      *
      * @param UploadedFile $image
      *
-     * @return string путь к фото для сохранения его в базе, в случае ошибки NULL
+     * @return string Image field value or NULL if error
      */
     protected function uploadImage(UploadedFile $image)
     {
@@ -235,11 +283,11 @@ class ImageUploaderBehavior extends Behavior
         // Max width for uploaded original image
         $maxWidth = 1500;
         $namePart = uniqid();
-        $name = $namePart . '.' . $image->extension; // Имя будущего файла
+        $name = $namePart . '.' . $image->extension; // New filename
         $imageFolder = Yii::getAlias($this->_savePathAlias); // Куда загружать изображение
-        // Создаём новую рандомную директорию для загрузки в неё изображений
+        // Creates new random subdir for images
         $rnddir = static::getRandomDir($imageFolder);
-        $fullImagePath = $imageFolder . $DS . $rnddir . $DS . $name; // Полный путь к изображению
+        $fullImagePath = $imageFolder . $DS . $rnddir . $DS . $name; // Full image path
         if ($image->saveAs($fullImagePath)) {
             // Reduce image if image is very large
             $imageComponent = static::getImageComponent();
@@ -255,7 +303,7 @@ class ImageUploaderBehavior extends Behavior
             // Save original file
             $originalImage = $imageFolder . $DS . $rnddir . $DS . $namePart . '_original.' . $image->extension;
             @copy($fullImagePath, $originalImage);
-            // Если изображение успешно сохранено - делаем ресайзные копии
+            // If image successfully saved - make resized copies
             $sizes = $this->getImageSizes();
             $imageInfo = getimagesize($fullImagePath);
             $img_width = $imageInfo[0];
@@ -279,18 +327,18 @@ class ImageUploaderBehavior extends Behavior
                 $image_c->save($fullImagePath);
             }
 
-            // Если изображение НЕ шире чем положено - удаляем главный размер из списка для ресайза
+            // If the image is NOT wider than it should be - remove main size from the list of resize sizes
             if ($img_width <= $sizes['']) {
                 unset($sizes['']);
             }
 
-            // Запускаем ресайз
+            // Do resize
             $rez = static::resizeAndSave($imageFolder . $DS . $rnddir, $name, $sizes);
-            // Если ресайз прошёл успешно
+            // Successfull
             if ($rez === true) {
                 return $rnddir . '/' . $name;
             } else {
-                // Если ресайз пошёл неправильно - удалим файлы
+                // Error - remove resized copies
                 foreach ($this->getImageSizes() as $size) {
                     $file_name = $imageFolder . $DS . $rnddir . $DS . static::addPrefixToFile($name, $size);
                     @unlink($file_name);
@@ -304,13 +352,13 @@ class ImageUploaderBehavior extends Behavior
     }
 
     /**
-     * Подставляет префикс к имени файла
-     * Например addPrefixToFile("dirname/50b3d1ad130d0.png", "normal_") вернёт "dirname/normal_50b3d1ad130d0.png"
+     * Add file prefix
+     * For example addPrefixToFile("dirname/50b3d1ad130d0.png", "normal_") returned "dirname/normal_50b3d1ad130d0.png"
      *
-     * @param string $path   путь к главному изображению
-     * @param string $prefix префикс нужного размера
+     * @param string $path   Main image path
+     * @param string $prefix Size prefix
      *
-     * @return string путь с префиксом
+     * @return string Main image path with size prefix
      */
     public static function addPrefixToFile($path, $prefix = null)
     {
@@ -327,13 +375,13 @@ class ImageUploaderBehavior extends Behavior
     }
 
     /**
-     * Подставляет постфикс к имени файла
-     * Например addPrefixToFile("dirname/50b3d1ad130d0.png", "_normal") вернёт "dirname/50b3d1ad130d0_normal.png"
+     * Add file postfix
+     * For example addPrefixToFile("dirname/50b3d1ad130d0.png", "_normal") returned "dirname/50b3d1ad130d0_normal.png"
      *
-     * @param string $path    путь к главному изображению
-     * @param string $postfix постфикс нужного размера
+     * @param string $path    Main image path
+     * @param string $postfix Size postfix
      *
-     * @return string путь с постфиксом
+     * @return string Main image path with size postfix
      */
     public static function addPostfixToFile($path, $postfix = null)
     {
@@ -353,11 +401,11 @@ class ImageUploaderBehavior extends Behavior
     }
 
     /**
-     * Возвращает путь к картинке этой модели указанного размера
+     * Return image path for web
      *
-     * @param string $size Префикс размера нужного изображения
+     * @param string $size Size prefix
      *
-     * @return string путь к изображению, пригодный для Html::image()
+     * @return string Image src path, can be value for Html::image()
      */
     public function getImageSrc($size = null)
     {
@@ -367,7 +415,7 @@ class ImageUploaderBehavior extends Behavior
         if (Yii::$app->request instanceof \yii\web\Request) {
             $prefix = Yii::$app->request->baseUrl;
             $host = Yii::$app->request->hostInfo;
-            // Если мы сейчас находимся на субдомене admin.*, то вернём абсолютный путь к картинке на frontend
+            // If current application is backend - return absolute frontend image path
             if (!empty($this->_backendSubdomain) && strpos($host, $this->_backendSubdomain)) {
                 $prefix = str_replace($this->_backendSubdomain, '', $host) . $prefix;
             }
@@ -382,10 +430,10 @@ class ImageUploaderBehavior extends Behavior
             return $prefix . '/images/' . $this->_noImageBaseName;
         }
 
-        $root = Yii::getAlias($this->_rootPathAlias); // Корень сайта
-        $path = Yii::getAlias($this->_savePathAlias); // Получаем путь до папки с загрузками
-        $path = str_replace($root, '', $path); // Убиаем из полного пути часть webroot
-        $path = str_replace('\\', '/', $path); // Заменяем "\" на "/"
+        $root = Yii::getAlias($this->_rootPathAlias); // Webroot
+        $path = Yii::getAlias($this->_savePathAlias); // Uploading dir
+        $path = str_replace($root, '', $path); // Remove server path
+        $path = str_replace('\\', '/', $path); // Replace "\" to "/"
         $folder = $prefix . '/' . trim($path, '/') . '/';
 
         if (!empty($size)) {
@@ -396,17 +444,17 @@ class ImageUploaderBehavior extends Behavior
     }
 
     /**
-     * Создаём новую директорию в указаном пути, если она не была создана ранее
+     * Creates new directory by path (if doesn't exists)
      *
-     * @param string $path путь, где должна быть создана новая директория
+     * @param string $path Primary uploading directory path
      *
-     * @return string Путь к новой директории
+     * @return string Path to created random dir
      */
     public static function getRandomDir($path)
     {
         $DS = DIRECTORY_SEPARATOR;
-        $max_scatter = 9; // Диапазон имён директорий 0..$max_scatter
-        $levels = 3; // Уровень вложенности директорий
+        $max_scatter = 9; // Directory names max range 0..$max_scatter
+        $levels = 3; // Nested level
         $dirs = [];
         for ($i = 1; $i <= $levels; $i++) {
             $dirs[] = (string)rand(0, $max_scatter);
@@ -431,29 +479,29 @@ class ImageUploaderBehavior extends Behavior
     }
 
     /**
-     * Ресайзим изображение
+     * Make resized images
      *
-     * @param string $dir        директория, где находятся изображения данной модели
-     * @param string $fileName   имя файла в директории, где находятся изображения данной модели
-     * @param mixed $resizeWidth integer(ширина): будет один ресайз с перезаписью файла.<br />
-     *                           array: будет ресайз для каждого элемента массива.<br />
-     *                           формат массива таков:
+     * @param string $dir        Random directory path
+     * @param string $fileName   Primary filename
+     * @param mixed $resizeWidth integer(wide): one resize - rewrite primary file.<br />
+     *                           array: resize for each item.<br />
+     *                           array format:
      *                           <pre>
      *                           array('prefix1'=>sizeWidth1, 'prefix2'=>sizeWidth2)
      *                           </pre>
      *
-     * @return boolean В случае успеха TRUE, иначе FALSE
-     * @todo Обрезка максимальной высоты вместо ошибки
+     * @return boolean TRUE if successfull, FALSE otherwise
+     * @todo Crop max height instead validaton error message?
      */
     public static function resizeAndSave($dir, $fileName, $resizeWidth)
     {
         $DS = DIRECTORY_SEPARATOR;
 
-        // Полный путь к оригинальному изображению
+        // Full original image path
         $fullPath = $dir . $DS . $fileName;
 
         if (!@file_exists($fullPath)) {
-            // Если оригинального файла не существует - нет смысла продолжать
+            // if original file doesn't exists - breack
             return false;
         }
 
@@ -484,14 +532,14 @@ class ImageUploaderBehavior extends Behavior
      */
     public static function getImageComponent()
     {
-        // Получаем компонент для работы с изображениями
+        // Get image component
         if (is_object(static::$_imageComponent)) {
             $imageComponent = static::$_imageComponent;
         } else {
             $imageComponent = Yii::createObject([
                 'class' => 'yii\image\ImageDriver',
             ]);
-            // Сохраняем компонент для последующей работы с ним
+            // Store component for future using
             static::$_imageComponent = $imageComponent;
         }
 
@@ -499,7 +547,7 @@ class ImageUploaderBehavior extends Behavior
     }
 
     /**
-     * Возвращает максимальную высоту изображения относительно переданной ширины
+     * Returns the maximum height of the image relative to the specified width
      *
      * @param integer $width
      *
@@ -566,7 +614,7 @@ class ImageUploaderBehavior extends Behavior
         $pathParts = explode('/', str_replace('\\', '/', $imageSrc));
         $filename = array_pop($pathParts);
 
-        // Запускаем ресайз
+        // Make resize
         return static::resizeAndSave($savePath . $DS . implode($DS, $pathParts), $filename, $sizes);
     }
 }

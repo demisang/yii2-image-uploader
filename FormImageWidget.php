@@ -11,9 +11,7 @@ use yii\web\JsExpression;
 use yii\widgets\InputWidget;
 
 /**
- * Виджет отображения загруженного изображения в форме
- *
- * @package demi\image
+ * Show uploaded image in the form
  */
 class FormImageWidget extends InputWidget
 {
@@ -21,21 +19,37 @@ class FormImageWidget extends InputWidget
     public $deleteUrl;
     public $cropUrl;
     public $cropPluginOptions = [];
+    public $messages = [];
 
     public function init()
     {
         parent::init();
-        $this->registerTranslations();
-    }
 
-    public function registerTranslations()
-    {
-        $i18n = Yii::$app->i18n;
-        if (!isset($i18n->translations['image-upload'])) {
-            $i18n->translations['image-upload'] = [
-                'class' => 'yii\i18n\PhpMessageSource',
-                'sourceLanguage' => 'en-US',
-            ];
+        if (empty($this->messages['formats'])) {
+            $this->messages['formats'] = 'Supported formats: {formats}';
+        }
+        if (empty($this->messages['fileSize'])) {
+            $this->messages['fileSize'] = 'Maximum file size: {formattedSize}';
+        }
+        if (empty($this->messages['deleteBtn'])) {
+            $this->messages['deleteBtn'] = 'Delete';
+        }
+        if (empty($this->messages['deleteConfirmation'])) {
+            $this->messages['deleteConfirmation'] = 'Are you sure you want to delete the image?';
+        }
+        if (empty($this->messages['cropBtn'])) {
+            $this->messages['cropBtn'] = 'Crop';
+        }
+
+        // Crop widget messages
+        if (empty($this->messages['cropModalTitle'])) {
+            $this->messages['cropModalTitle'] = 'Select crop area and click "Crop" button';
+        }
+        if (empty($this->messages['closeModalBtn'])) {
+            $this->messages['closeModalBtn'] = 'Close';
+        }
+        if (empty($this->messages['cropModalBtn'])) {
+            $this->messages['cropModalBtn'] = 'Crop';
         }
     }
 
@@ -48,10 +62,12 @@ class FormImageWidget extends InputWidget
 
         $wigetId = $this->id;
         $img_hint = '<div class="hint-block">';
-        $img_hint .= Yii::t('image-upload', 'Supported formats:') . ' ' .
-            $behavior->getImageConfigParam('fileTypes') . '<br />';
-        $img_hint .= Yii::t('image-upload', 'Maximum file size:') . ' ' .
-            ceil($behavior->getImageConfigParam('maxFileSize') / 1024 / 1024) . Yii::t('image-upload', 'MB');
+        // Yii::$app->formatter->asShortSize($this->getSizeLimit())
+        $img_hint .= str_replace('{formats}', $behavior->getImageConfigParam('fileTypes'), $this->messages['formats']);
+        $img_hint .= '<br />';
+        $maxFileSize = $behavior->getImageConfigParam('maxFileSize');
+        $img_hint .= str_replace('{formattedSize}', Yii::$app->formatter->asShortSize($maxFileSize),
+            $this->messages['fileSize']);
         $img_hint .= '</div><!-- /.hint-block -->';
 
         $imageVal = $model->getAttribute($behavior->getImageConfigParam('imageAttribute'));
@@ -61,10 +77,10 @@ class FormImageWidget extends InputWidget
             $img_hint .= Html::img($this->imageSrc, ['class' => 'pull-left uploaded-image-preview']);
             // $img_hint .= '<div class="pull-left" style="margin-left: 5px;">';
             $img_hint .= '<div class="btn-group-vertical pull-left"  style="margin-left: 5px;" role="group">';
-            $img_hint .= Html::a('Delete <i class="glyphicon glyphicon-trash"></i>', '#',
+            $img_hint .= Html::a($this->messages['deleteBtn'] . ' <i class="glyphicon glyphicon-trash"></i>', '#',
                 [
                     'onclick' => new JsExpression('
-                        if (!confirm(" ' . Yii::t('image-upload', 'Are you sure you want to delete the image?') . '")) {
+                        if (!confirm(" ' . $this->messages['deleteConfirmation'] . '")) {
                             return false;
                         }
 
@@ -99,6 +115,7 @@ class FormImageWidget extends InputWidget
                     'image' => ImageUploaderBehavior::addPostfixToFile($model->getImageSrc(), '_original'),
                     'aspectRatio' => $behavior->getImageConfigParam('aspectRatio'),
                     'pluginOptions' => $pluginOptions,
+                    'messages' => $this->messages,
                     'ajaxOptions' => [
                         'success' => new JsExpression(<<<JS
 function(data) {
@@ -120,4 +137,4 @@ JS
 
         return Html::activeFileInput($model, $imgAttr) . $img_hint;
     }
-} 
+}

@@ -62,6 +62,9 @@ public function behaviors()
                 'imageValidatorParams' => [
                     'minWidth' => 400,
                     'minHeight' => 300,
+                    // Custom validation errors
+                    // see more in \yii\validators\ImageValidator::init() and \yii\validators\FileValidator::init() 
+                    'tooBig' => Yii::t('yii', 'The file "{file}" is too big. Its size cannot exceed {formattedLimit}.'),
                 ],
                 // Cropper config
                 'aspectRatio' => 4 / 3, // or 16/9(wide) or 1/1(square) or any other ratio. Null - free ratio
@@ -118,6 +121,19 @@ _form.php
     'cropUrl' => ['cropImage', 'id' => $model->getPrimaryKey()],
     // cropper options https://github.com/fengyuanchen/cropper/blob/master/README.md#options
     'cropPluginOptions' => [],
+    // Translated messages
+    'messages' => [
+        // {formats} and {formattedSize} will replaced by widget to actual values
+        'formats' => Yii::t('app', 'Supported formats: {formats}'),
+        'fileSize' => Yii::t('app', 'Maximum file size: {formattedSize}'),
+        'deleteBtn' => Yii::t('app', 'Delete'),
+        'deleteConfirmation' => Yii::t('app', 'Are you sure you want to delete the image?'),
+        // Cropper
+        'cropBtn' => Yii::t('app', 'Crop'),
+        'cropModalTitle' => Yii::t('app', 'Select crop area and click "Crop" button'),
+        'closeModalBtn' => Yii::t('app', 'Close'),
+        'cropModalBtn' => Yii::t('app', 'Crop selected'),
+    ],
 ]) ?>
 ```
 
