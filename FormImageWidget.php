@@ -49,7 +49,7 @@ class FormImageWidget extends InputWidget
             $this->messages['closeModalBtn'] = 'Close';
         }
         if (empty($this->messages['cropModalBtn'])) {
-            $this->messages['cropModalBtn'] = 'Crop';
+            $this->messages['cropModalBtn'] = 'Crop selected';
         }
     }
 
