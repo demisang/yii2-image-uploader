@@ -4,11 +4,11 @@
     "keywords": ["yii2", "image", "upload", "behavior", "resize"],
     "homepage": "https://github.com/demisang/yii2-image-uploader#readme",
     "type": "yii2-extension",
-    "license": "GNU",
+    "license": "GPL-3.0-or-later",
     "authors": [
         {
             "name": "Ivan Orlov",
-            "email": "orlov_mail@mail.ru",
+            "email": "gnasimed@gmail.com",
             "homepage": "https://orlov.io/",
             "role": "Creator"
         }

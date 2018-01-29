@@ -1,4 +1,10 @@
 <?php
+/**
+ * @copyright Copyright (c) 2018 Ivan Orlov
+ * @license   https://github.com/demisang/yii2-image-uploader/blob/master/LICENSE
+ * @link      https://github.com/demisang/yii2-image-uploader#readme
+ * @author    Ivan Orlov <gnasimed@gmail.com>
+ */
 
 namespace demi\image;
 
@@ -120,4 +126,4 @@ class CropImageAction extends Action
 
         return $value;
     }
-} 
+}

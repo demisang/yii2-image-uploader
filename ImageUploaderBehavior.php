@@ -1,18 +1,21 @@
 <?php
+/**
+ * @copyright Copyright (c) 2018 Ivan Orlov
+ * @license   https://github.com/demisang/yii2-image-uploader/blob/master/LICENSE
+ * @link      https://github.com/demisang/yii2-image-uploader#readme
+ * @author    Ivan Orlov <gnasimed@gmail.com>
+ */
 
 namespace demi\image;
 
 use Yii;
 use yii\base\Behavior;
 use yii\db\ActiveRecord;
-use yii\helpers\Html;
-use yii\helpers\Url;
 use yii\image\drivers\Image_GD;
 use yii\image\drivers\Image_Imagick;
 use yii\validators\ImageValidator;
 use yii\validators\RequiredValidator;
 use yii\validators\Validator;
-use yii\web\JsExpression;
 use yii\web\UploadedFile;
 
 /**
