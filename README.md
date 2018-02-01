@@ -8,10 +8,10 @@ Installation
 Add to composer.json in your project
 ```json
 {
-	"require": {
+    "require": {
         "yurkinx/yii2-image": "dev-master",
         "demi/image": "~1.0"
-	}
+    }
 }
 ```
 then run command
