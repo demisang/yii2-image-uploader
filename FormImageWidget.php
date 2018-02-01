@@ -64,7 +64,7 @@ class FormImageWidget extends InputWidget
         /* @var $model ActiveRecord|ImageUploaderBehavior */
         $model = $this->model;
         /* @var $behavior ImageUploaderBehavior */
-        $behavior = $model->geImageBehavior();
+        $behavior = $model->getImageBehavior();
 
         $wigetId = $this->id;
         $img_hint = '<div class="hint-block">';

@@ -566,7 +566,7 @@ class ImageUploaderBehavior extends Behavior
      *
      * @return self $this
      */
-    public function geImageBehavior()
+    public function getImageBehavior()
     {
         return $this;
     }
