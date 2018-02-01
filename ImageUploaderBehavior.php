@@ -576,7 +576,7 @@ class ImageUploaderBehavior extends Behavior
      *
      * @return string
      */
-    protected function getOriginalImagePath()
+    public function getOriginalImagePath()
     {
         $savePath = Yii::getAlias($this->_savePathAlias);
         $image = $this->_oldImage;
