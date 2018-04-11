@@ -69,6 +69,8 @@ public function behaviors()
                 // located in the frontend, you can set this param and then getImageSrc() will be return
                 // path to image without subdomain part even in backend part
                 'backendSubdomain' => 'admin.',
+                // or if backend located by route '/admin/*'
+                'backendRoute' => '/admin',
             ],
         ],
     ];
