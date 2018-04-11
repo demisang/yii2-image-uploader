@@ -94,6 +94,14 @@ class ImageUploaderBehavior extends Behavior
      */
     protected $_backendSubdomain = 'admin.';
     /**
+     * If backend is located on a route '/admin', and images are uploaded to a directory
+     * located in the frontend, you can set this param and then getImageSrc() will be return
+     * path to image without route part even in backend part
+     *
+     * @var string
+     */
+    protected $_backendRoute = '/admin';
+    /**
      * Tmp field stored already uploaded image
      *
      * @var string
@@ -419,8 +427,11 @@ class ImageUploaderBehavior extends Behavior
             $prefix = Yii::$app->request->baseUrl;
             $host = Yii::$app->request->hostInfo;
             // If current application is backend - return absolute frontend image path
-            if (!empty($this->_backendSubdomain) && strpos($host, $this->_backendSubdomain)) {
+            if (!empty($this->_backendSubdomain) && strpos($host, $this->_backendSubdomain) !== false) {
                 $prefix = str_replace($this->_backendSubdomain, '', $host) . $prefix;
+            }
+            if (!empty($this->_backendRoute) && strpos($prefix, $this->_backendRoute) !== false) {
+                $prefix = str_replace($this->_backendRoute, '', $prefix);
             }
         }
 
